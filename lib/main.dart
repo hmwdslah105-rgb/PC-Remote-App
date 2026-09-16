@@ -15,19 +15,11 @@ class PCRemoteApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Control Node - PC Remote',
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F172A), // Slate 900
+        scaffoldBackgroundColor: const Color(0xFF0F172A),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF8B5CF6), // Neon Purple
-          secondary: Color(0xFF06B6D4), // Cyan Accent
-          surface: Color(0xFF1E293B), // Slate 800
-        ),
-        cardTheme: CardTheme(
-          color: const Color(0xFF1E293B),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFF334155), width: 1),
-          ),
+          primary: Color(0xFF8B5CF6),
+          secondary: Color(0xFF06B6D4),
+          surface: Color(0xFF1E293B),
         ),
       ),
       home: const RemoteHomeScreen(),
@@ -102,6 +94,18 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
     }
   }
 
+  Widget _buildCard({required Widget child}) {
+    return Card(
+      color: const Color(0xFF1E293B),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFF334155), width: 1),
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,7 +135,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // الهيدر الداخلي بالرمز البرمجي غير المباشر
+            // الهيدر التفاعلي
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -182,7 +186,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
             const SizedBox(height: 20),
 
             // كارت إعدادات الشبكة
-            Card(
+            _buildCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -195,7 +199,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: 'IP Address',
-                        prefixIcon: const Icon(IconData(0xe531, fontFamily: 'MaterialIcons'), color: Color(0xFF8B5CF6)),
+                        prefixIcon: const Icon(Icons.router_rounded, color: Color(0xFF8B5CF6)),
                         filled: true,
                         fillColor: const Color(0xFF0F172A),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -231,7 +235,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
             const SizedBox(height: 16),
 
             // كارت أوامر الطاقة
-            Card(
+            _buildCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -284,8 +288,8 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // كارت النص الحافظة (Clipboard)
-            Card(
+            // كارت النصوص (Clipboard)
+            _buildCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -324,7 +328,7 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
               ),
             ),
 
-            // شريط الحالات والتنفيذ
+            // شريط الحالات
             if (statusMessage.isNotEmpty) ...[
               const SizedBox(height: 16),
               AnimatedContainer(
