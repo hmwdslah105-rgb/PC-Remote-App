@@ -13,12 +13,21 @@ class PCRemoteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'PC Remote',
+      title: 'Control Node - PC Remote',
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF0F172A), // Slate 900
         colorScheme: const ColorScheme.dark(
-          primary: Colors.deepPurpleAccent,
-          surface: Color(0xFF1E1E1E),
+          primary: Color(0xFF8B5CF6), // Neon Purple
+          secondary: Color(0xFF06B6D4), // Cyan Accent
+          surface: Color(0xFF1E293B), // Slate 800
+        ),
+        cardTheme: CardTheme(
+          color: const Color(0xFF1E293B),
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFF334155), width: 1),
+          ),
         ),
       ),
       home: const RemoteHomeScreen(),
@@ -46,11 +55,10 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
     });
   }
 
-  // إرسال الأوامر للسيرفر عبر TCP Socket
   Future<void> _sendCommand(Map<String, dynamic> command) async {
     final String ip = ipController.text.trim();
     if (ip.isEmpty) {
-      _showStatus("خطأ: يرجى كتابة عنوان IP");
+      _showStatus("⚠️ يرجى كتابة عنوان IP الصحيح");
       return;
     }
 
@@ -59,18 +67,17 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
       socket.write(jsonEncode(command));
       await socket.flush();
       await socket.close();
-      _showStatus("تم إرسال الأمر بنجاح!");
+      _showStatus("⚡ تم تنفيذ الأمر بنجاح!");
     } catch (e) {
-      _showStatus("خطأ في الاتصال بالسيرفر: $e");
+      _showStatus("❌ خطأ في الاتصال بالسيرفر: $e");
     }
   }
 
-  // إرسال حزمة Wake-on-LAN لتشغيل الكمبيوتر
   void _sendWOL() async {
     try {
       String mac = macController.text.replaceAll(':', '').replaceAll('-', '').trim();
       if (mac.length != 12) {
-        _showStatus("خطأ: عنوان MAC غير صحيح");
+        _showStatus("⚠️ عنوان MAC غير صحيح");
         return;
       }
 
@@ -79,7 +86,6 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
         macBytes.add(int.parse(mac.substring(i, i + 2), radix: 16));
       }
 
-      // إنشاء Magic Packet باستخدام قائمة قابلة للتوسع تجنباً للـ Unsupported Operation Error
       List<int> packet = List<int>.filled(6, 0xFF, growable: true);
       for (int i = 0; i < 16; i++) {
         packet.addAll(macBytes);
@@ -90,9 +96,9 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
       socket.send(packet, InternetAddress('255.255.255.255'), 9);
       socket.close();
 
-      _showStatus("تم إرسال أمر Wake-on-LAN بنجاح!");
+      _showStatus("🚀 تم إرسال حزمة Wake-on-LAN!");
     } catch (e) {
-      _showStatus("خطأ في إرسال WOL: $e");
+      _showStatus("❌ خطأ في إرسال WOL: $e");
     }
   }
 
@@ -100,95 +106,239 @@ class _RemoteHomeScreenState extends State<RemoteHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التحكم في الكمبيوتر'),
+        backgroundColor: const Color(0xFF0F172A),
+        elevation: 0,
         centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: ipController,
-              decoration: const InputDecoration(
-                labelText: 'IP Address',
-                border: OutlineInputBorder(),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.terminal_rounded, color: Color(0xFF06B6D4)),
+            SizedBox(width: 8),
+            Text(
+              'CONTROL NODE',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+                fontSize: 18,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: macController,
-              decoration: const InputDecoration(
-                labelText: 'MAC Address',
-                border: OutlineInputBorder(),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // الهيدر الداخلي بالرمز البرمجي غير المباشر
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF06B6D4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.developer_board_rounded, size: 36, color: Colors.white),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Remote Console v2.0',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Local Gateway & Power Protocol',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // كارت إعدادات الشبكة
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Network Configuration', style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: ipController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'IP Address',
+                        prefixIcon: const Icon(IconData(0xe531, fontFamily: 'MaterialIcons'), color: Color(0xFF8B5CF6)),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: macController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'MAC Address',
+                        prefixIcon: const Icon(Icons.fingerprint, color: Color(0xFF8B5CF6)),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _sendWOL,
+                      icon: const Icon(Icons.power_settings_new, color: Colors.white),
+                      label: const Text('تشغيل الجهاز (Wake-on-LAN)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                backgroundColor: Colors.green[800],
+
+            // كارت أوامر الطاقة
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Power Actions', style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEF4444),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () => _sendCommand({"type": "power", "action": "shutdown"}),
+                            child: const Text('إطفاء', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFF59E0B),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () => _sendCommand({"type": "power", "action": "restart"}),
+                            child: const Text('إعادة تشغيل', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6366F1),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () => _sendCommand({"type": "power", "action": "sleep"}),
+                            child: const Text('Sleep', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              onPressed: _sendWOL,
-              icon: const Icon(Icons.power_settings_new),
-              label: const Text('تشغيل الكمبيوتر (Wake-on-LAN)'),
             ),
-            const Divider(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red[800]),
-                    onPressed: () => _sendCommand({"type": "power", "action": "shutdown"}),
-                    child: const Text('إطفاء'),
-                  ),
+            const SizedBox(height: 16),
+
+            // كارت النص الحافظة (Clipboard)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Clipboard Stream', style: TextStyle(color: Color(0xFF06B6D4), fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: textController,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        hintText: 'اكتب نصاً لنقله مباشرة إلى حافظة الكمبيوتر...',
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8B5CF6),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        if (textController.text.isNotEmpty) {
+                          _sendCommand({"type": "clipboard", "text": textController.text});
+                        }
+                      },
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                      label: const Text('إرسال للكمبيوتر', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _sendCommand({"type": "power", "action": "restart"}),
-                    child: const Text('إعادة تشغيل'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _sendCommand({"type": "power", "action": "sleep"}),
-                    child: const Text('Sleep'),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 32),
-            TextField(
-              controller: textController,
-              decoration: const InputDecoration(
-                labelText: 'نص لإرساله للكمبيوتر (Clipboard)',
-                border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-              onPressed: () {
-                if (textController.text.isNotEmpty) {
-                  _sendCommand({
-                    "type": "clipboard",
-                    "text": textController.text,
-                  });
-                }
-              },
-              child: const Text('إرسال النص'),
-            ),
+
+            // شريط الحالات والتنفيذ
             if (statusMessage.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                width: double.infinity,
-                color: Colors.white10,
+              const SizedBox(height: 16),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF06B6D4), width: 1),
+                ),
                 child: Text(
                   statusMessage,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14, color: Colors.orangeAccent),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF38BDF8)),
                 ),
               ),
             ],
